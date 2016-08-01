@@ -1,19 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
     <munit:config name="munit" doc:name="MUnit configuration"/>
     <spring:beans>
         <spring:import resource="classpath:abccafeproject.xml"/>
     </spring:beans>
     <munit:test name="abccafeprojectFlowTest1" description="Test">
-        <flow-ref name="abccafeprojectFlow" doc:name="Flow-ref to abccafeprojectFlow"/>
+        <mock:when messageProcessor=".*:.*" doc:name="Mock">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="#['JMS']"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#['jjjj']"/>
+        </mock:when>
+        <flow-ref name="abccafeprojectFlow" doc:name="abccafeprojectFlow"/>
         <logger message="------------------------------------------------------------------#[message]" level="INFO" doc:name="Logger"/>
         <munit:assert-not-same expectedValue="#[message]" actualValue="#[message]" doc:name="Assert Not Equals"/>
     </munit:test>
     <munit:test name="abccafeprojectFlow1Test2" description="Test">
-        <flow-ref name="abccafeprojectFlow1" doc:name="Flow-ref to abccafeprojectFlow1"/>
+        <mock:when messageProcessor=".*:.*" doc:name="Mock">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="#['JMS']"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#['I am mocking']"/>
+        </mock:when>
+        <flow-ref name="abccafeprojectFlow1" doc:name="abccafeprojectFlow1"/>
         <munit:assert-not-same expectedValue="#[message]" actualValue="#[message]" doc:name="Assert Not Equals"/>
     </munit:test>
 </mule>

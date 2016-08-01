@@ -15,14 +15,13 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
     <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
     <sfdc:config name="Salesforce__Basic_Authentication" username="sivanagaprasad.seelam@whishworks.com" password="Santhi@23" securityToken="1njJ3Wfmje5oHmEhELFIflRj" doc:name="Salesforce: Basic Authentication"/>
-    <jms:activemq-connector name="Active_MQ" username="admin" password="admin" brokerURL="tcp://localhost:61616" validateConnections="true" doc:name="Active MQ"/>
     <twitter:config name="Twitter__Configuration" accessKey="${twitter.accesskey}" accessSecret="${twitter.accesssecret}" consumerKey="${twitter.consumerkey}" consumerSecret="${twitter.consumersecret}" doc:name="Twitter: Configuration"/>
     <db:mysql-config name="MySQL_Configuration" host="10.0.2.40" port="3306" user="mule" password="mule" database="training" doc:name="MySQL Configuration"/>
     <twitter:config name="Twitter__Configuration1" accessKey="755625867108290560-jQEOYnnUyleW4dVdjkR1vRBKhIQjIby" accessSecret="Nu9MzoI3D6q3Rxu6B2tlbZYIwetrKLtDUNTksa5E9VrHr" consumerKey="JpEpxkOHvQEBGuz88Z9WGMADk" consumerSecret="nyqKk33UVVsHPLriwqVxMhCdwsiUMHsXXIk5H5qUt4KJaNpxmM" doc:name="Twitter: Configuration"/>
+    <jms:activemq-connector name="Active_MQ" username="admin" password="admin" brokerURL="tcp://localhost:61616" validateConnections="true" doc:name="Active MQ"/>
     <flow name="abccafeprojectFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/cafe" doc:name="HTTP"/>
         <sfdc:query config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Analysiscode1__c,Name,Name__c,accountstatuscode__c,lastmodifieddate__c,phoneno__c,salespersoncode__c FROM BillTo__c" doc:name="Salesforce"/>
-        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
         <logger message="------------------------------------------------------------------------------------------------#[payload]" level="INFO" doc:name="Logger"/>
         <dw:transform-message metadata:id="61e62792-15cf-4e18-b9ef-8e6abba66f23" doc:name="Transform Message">
             <dw:set-payload><![CDATA[%dw 1.0
@@ -38,14 +37,13 @@ payload map ((payload01 , indexOfPayload01) -> {
 	accountstatus: payload01.accountstatuscode__c
 })]]></dw:set-payload>
         </dw:transform-message>
-        <logger message="111111111+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#[payload[0].No]@@@@@@@@@@@@@#[payload[0].Name]" level="INFO" doc:name="Logger"/>
         <foreach doc:name="For Each">
             <db:insert config-ref="MySQL_Configuration" doc:name="Database">
                 <db:parameterized-query><![CDATA[INSERT INTO BILL_TO_SIVA (customernumber,name, phoneno, accountstatus, lastmodifeddate, analysiscode,salespersoncode) VALUES (#[payload.No],#[payload.Name],#[payload.phoneno],#[payload.accountstatus],#[payload.lastmodifeddate],#[payload.analysiscode],#[payload.salespersoncode])]]></db:parameterized-query>
             </db:insert>
         </foreach>
-        <logger message="444444444444%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#[&quot;insertedd in to DB&quot;]" level="INFO" doc:name="Logger"/>
         <twitter:update-status config-ref="Twitter__Configuration1" status="#['Records Fetched from Salesforce and Inserted in to Database ! ' + server.dateTime]" doc:name="Twitter"/>
+        <jms:outbound-endpoint queue="test" connector-ref="Active_MQ" doc:name="JMS"/>
         <set-payload value="#[payload]" doc:name="Set Payload"/>
     </flow>
     <flow name="abccafeprojectFlow1">
@@ -82,5 +80,7 @@ payload map ((payload01 , indexOfPayload01) -> {
                 <db:parameterized-query><![CDATA[INSERT INTO SellToSiva (No_key,Name,Address,Address2,City,County,PostalCode,Country,PhoneNo,AccountStatus,BillToCustomerNo,salespersoncode,analysiscode1,analysiscode2,lastmodifieddate,pricecardcode) VALUES (#[payload.Number],#[payload.name],#[payload.address],#[payload.address2],#[payload.city],#[payload.country],#[payload.postalcode],#[payload.countrycode],#[payload.phoneno],#[payload.accountstatuscode],#[payload.Billtocustomer],#[payload.salespersoncode],#[payload.analysiscode1],#[payload.analysiscode2],#[payload.lastmodifieddate],#[payload.pricecardno])]]></db:parameterized-query>
             </db:insert>
         </foreach>
+        <twitter:update-status config-ref="Twitter__Configuration" status="#['Records are inserted in to DB SIVA'+ server.dateTime]" doc:name="Twitter"/>
+        <jms:outbound-endpoint queue="test"  doc:name="JMS"/>
     </flow>
 </mule>
